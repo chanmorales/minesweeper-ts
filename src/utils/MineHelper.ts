@@ -18,7 +18,7 @@ class MineHelper {
     initialY: number
   ): number[][] {
     // Available fields for a mine to be placed
-    let availableFields: number[] = Array.from(
+    const availableFields: number[] = Array.from(
       { length: width * height },
       (_, index) => index + 1
     );
@@ -56,7 +56,7 @@ class MineHelper {
     availableFields: number[]
   ): number[][] {
     // Initialize to all zero's
-    let mineField: number[][] = [];
+    const mineField: number[][] = [];
     for (let i = 0; i < height; i++) {
       mineField.push(new Array(width).fill(0));
     }
@@ -127,7 +127,7 @@ class MineHelper {
     width: number,
     height: number
   ): number[] {
-    let initialAndNeighborIndices: number[] = [];
+    const initialAndNeighborIndices: number[] = [];
 
     // Add the cell itself
     initialAndNeighborIndices.push(this.coordinateToIndex(x, y, width));

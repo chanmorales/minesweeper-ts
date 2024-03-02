@@ -46,7 +46,7 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
 
   useEffect(() => {
     // Set minefield initially to all zero's
-    let mineField = [];
+    const mineField = [];
     for (let i = 0; i < height; i++) {
       mineField.push(new Array(width).fill(0));
     }

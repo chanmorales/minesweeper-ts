@@ -30,13 +30,17 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "lint": "npx eslint src/**/*"
   },
   "eslintConfig": {
     "extends": [
       "react-app",
       "react-app/jest",
-      "plugin:storybook/recommended"
+      "plugin:storybook/recommended",
+      "eslint:recommended",
+      "plugin:react-hooks/recommended",
+      "plugin:@typescript-eslint/recommended"
     ],
     "overrides": [
       {
@@ -44,7 +48,13 @@
           "*.stories.@(ts|tsx|js|jsx|mjs|cjs)"
         ]
       }
-    ]
+    ],
+    "ignorePatterns": [
+      "**/*.png",
+      "**/*.svg",
+      "**/*.css"
+    ],
+    "parser": "@typescript-eslint/parser"
   },
   "browserslist": {
     "production": [
