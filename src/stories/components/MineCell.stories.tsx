@@ -14,7 +14,12 @@ const meta: Meta<MineCellMeta> = {
         padding: "5px",
         width: "fit-content",
       }}>
-      <MineCell bombs={bombs} />
+      <MineCell
+        x={0}
+        y={0}
+        bombs={bombs}
+        onOpen={(x, y) => console.log(`opened [${x}, ${y}]`)}
+      />
     </div>
   ),
   args: {

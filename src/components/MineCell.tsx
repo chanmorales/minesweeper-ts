@@ -5,10 +5,20 @@ import MineIcon from "../common/icons/MineIcon";
 import FlagIcon from "../common/icons/FlagIcon";
 
 interface MineCellProps {
+  x: number;
+  y: number;
   bombs: number;
+  onOpen: (x: number, y: number) => void;
+  disabled?: boolean;
 }
 
-const MineCell: FC<MineCellProps> = ({ bombs }) => {
+const MineCell: FC<MineCellProps> = ({
+  x,
+  y,
+  bombs,
+  onOpen,
+  disabled = false,
+}) => {
   const [isOpened, setIsOpened] = useState(false);
   const [isFlagged, setIsFlagged] = useState(false);
 
@@ -16,6 +26,8 @@ const MineCell: FC<MineCellProps> = ({ bombs }) => {
     // Flagged mine can't be opened, as well as already opened mine
     if (isFlagged || isOpened) return;
     setIsOpened(true);
+
+    onOpen(x, y);
 
     // Prevent default action
     e.preventDefault();
@@ -43,17 +55,19 @@ const MineCell: FC<MineCellProps> = ({ bombs }) => {
       if (isFlagged) {
         return <FlagIcon />;
       } else {
-        return "";
+        // Change to empty
+        return bombs;
       }
     }
   }, [bombs, isFlagged, isOpened]);
 
   return (
     <Button
-      className={`mine-cell ${isOpened && "opened"}`}
+      className={`mine-cell ${isOpened && "opened"} ${disabled && "disabled"}`}
       icon={renderIcon}
       onClick={handleLeftClick}
       onContextMenu={handleRightClick}
+      disabled={disabled}
     />
   );
 };
