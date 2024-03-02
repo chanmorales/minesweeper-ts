@@ -1,0 +1,57 @@
+.game-container {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mine-field-container, .game-details-container {
+  border: 2px solid #7CB9E8;
+  min-height: 80vh;
+  max-height: 80vh;
+}
+
+.mine-field-container {
+  width: 70vw;
+}
+
+.game-details-container {
+  width: 20vw;
+  margin-left: 20px;
+}
+
+.mine-cell {
+  color: white;
+  padding: 0;
+  text-align: center;
+  text-decoration: none;
+  width: 32px;
+  height: 32px;
+  font-size: 24px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer !important;
+  margin: 2px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+  border-radius: 2px;
+  background-color: #20638f;
+}
+
+.mine-cell.opened {
+  background-color: #2980b9 !important;
+}
+
+.mine-cell.disabled {
+  background-color: #20638f !important;
+  cursor: pointer !important;
+  color: white !important;
+}
+
+.mine-cell:hover {
+  background-color: #2980b9 !important;
+  color: white !important;
+}
