@@ -11,12 +11,12 @@ const ADVANCED: GameType = { width: 30, height: 16, bombs: 99 };
 export type GAME_TYPES = typeof EASY | typeof INTERMEDIATE | typeof ADVANCED;
 
 export interface Coordinates {
-  x: number;
-  y: number;
+  row: number;
+  col: number;
 }
 
 export enum FieldState {
   UNEXPLORED,
-  OPENED,
   FLAGGED,
+  OPENED,
 }

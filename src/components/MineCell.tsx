@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useMemo } from "react";
+import React, { FC, useMemo } from "react";
 import "../styles/Game.css";
 import { Button } from "antd";
 import MineIcon from "../common/icons/MineIcon";
@@ -59,14 +59,9 @@ const MineCell: FC<MineCellProps> = ({
     } else if (fieldState === FieldState.FLAGGED) {
       return <FlagIcon />;
     } else {
-      // TODO Change to empty
-      return bombs;
+      return "";
     }
   }, [bombs, fieldState]);
-
-  useEffect(() => {
-    console.log(fieldState);
-  }, [fieldState]);
 
   return (
     <Button

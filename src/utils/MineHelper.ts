@@ -67,8 +67,11 @@ class MineHelper {
       const mineIdx = Math.floor(Math.random() * availableFields.length);
 
       // Set the value on generated index as mine.
-      const { x, y } = this.indexToCoordinate(availableFields[mineIdx], width);
-      mineField[x][y] = -1;
+      const { row, col } = this.indexToCoordinate(
+        availableFields[mineIdx],
+        width
+      );
+      mineField[row][col] = -1;
 
       // Increment the mine counter
       generatedMines++;
@@ -79,35 +82,38 @@ class MineHelper {
       /*
        * Increment the bomb count of the neighboring cells
        */
-      if (y > 0) {
+      if (col > 0) {
         // Left
-        if (mineField[x][y - 1] !== -1) mineField[x][y - 1]++;
+        if (mineField[row][col - 1] !== -1) mineField[row][col - 1]++;
 
         // Upper Left
-        if (x > 0 && mineField[x - 1][y - 1] !== -1) mineField[x - 1][y - 1]++;
+        if (row > 0 && mineField[row - 1][col - 1] !== -1)
+          mineField[row - 1][col - 1]++;
 
         // Lower Left
-        if (x < height - 1 && mineField[x + 1][y - 1] !== -1)
-          mineField[x + 1][y - 1]++;
+        if (row < height - 1 && mineField[row + 1][col - 1] !== -1)
+          mineField[row + 1][col - 1]++;
       }
 
-      if (y < width - 1) {
+      if (col < width - 1) {
         // Right
-        if (mineField[x][y + 1] !== -1) mineField[x][y + 1]++;
+        if (mineField[row][col + 1] !== -1) mineField[row][col + 1]++;
 
         // Upper Left
-        if (x > 0 && mineField[x - 1][y + 1] !== -1) mineField[x - 1][y + 1]++;
+        if (row > 0 && mineField[row - 1][col + 1] !== -1)
+          mineField[row - 1][col + 1]++;
 
         // Lower Left
-        if (x < height - 1 && mineField[x + 1][y + 1] !== -1)
-          mineField[x + 1][y + 1]++;
+        if (row < height - 1 && mineField[row + 1][col + 1] !== -1)
+          mineField[row + 1][col + 1]++;
       }
 
       // Up
-      if (x > 0 && mineField[x - 1][y] !== -1) mineField[x - 1][y]++;
+      if (row > 0 && mineField[row - 1][col] !== -1) mineField[row - 1][col]++;
 
       // Down
-      if (x < height - 1 && mineField[x + 1][y] !== -1) mineField[x + 1][y]++;
+      if (row < height - 1 && mineField[row + 1][col] !== -1)
+        mineField[row + 1][col]++;
     }
 
     return mineField;
@@ -116,37 +122,39 @@ class MineHelper {
   /**
    * Get the index of the initial click and its neighbors based on its coordinates
    *
-   * @param x - the x-coordinate of the initial click
-   * @param y - the y-coordinate of the initial click
+   * @param row - the row of the initial click
+   * @param col - the col of the initial click
    * @param width - the width
    * @param height - the height
    */
   private getInitialAndNeighborIndices(
-    x: number,
-    y: number,
+    row: number,
+    col: number,
     width: number,
     height: number
   ): number[] {
     const initialAndNeighborIndices: number[] = [];
 
     // Add the cell itself
-    initialAndNeighborIndices.push(this.coordinateToIndex(x, y, width));
+    initialAndNeighborIndices.push(this.coordinateToIndex(row, col, width));
 
     /*
      * Upper left, left and lower left
      */
-    if (y > 0) {
-      initialAndNeighborIndices.push(this.coordinateToIndex(x, y - 1, width));
+    if (col > 0) {
+      initialAndNeighborIndices.push(
+        this.coordinateToIndex(row, col - 1, width)
+      );
 
-      if (x > 0) {
+      if (row > 0) {
         initialAndNeighborIndices.push(
-          this.coordinateToIndex(x - 1, y - 1, width)
+          this.coordinateToIndex(row - 1, col - 1, width)
         );
       }
 
-      if (x < height - 1) {
+      if (row < height - 1) {
         initialAndNeighborIndices.push(
-          this.coordinateToIndex(x + 1, y - 1, width)
+          this.coordinateToIndex(row + 1, col - 1, width)
         );
       }
     }
@@ -154,30 +162,36 @@ class MineHelper {
     /*
      * Upper right, right and lower right
      */
-    if (y < width - 1) {
-      initialAndNeighborIndices.push(this.coordinateToIndex(x, y + 1, width));
+    if (col < width - 1) {
+      initialAndNeighborIndices.push(
+        this.coordinateToIndex(row, col + 1, width)
+      );
 
-      if (x > 0) {
+      if (row > 0) {
         initialAndNeighborIndices.push(
-          this.coordinateToIndex(x - 1, y + 1, width)
+          this.coordinateToIndex(row - 1, col + 1, width)
         );
       }
 
-      if (x < height - 1) {
+      if (row < height - 1) {
         initialAndNeighborIndices.push(
-          this.coordinateToIndex(x + 1, y + 1, width)
+          this.coordinateToIndex(row + 1, col + 1, width)
         );
       }
     }
 
     // Up
-    if (x > 0) {
-      initialAndNeighborIndices.push(this.coordinateToIndex(x - 1, y, width));
+    if (row > 0) {
+      initialAndNeighborIndices.push(
+        this.coordinateToIndex(row - 1, col, width)
+      );
     }
 
     // Down
-    if (x < height - 1) {
-      initialAndNeighborIndices.push(this.coordinateToIndex(x + 1, y, width));
+    if (row < height - 1) {
+      initialAndNeighborIndices.push(
+        this.coordinateToIndex(row + 1, col, width)
+      );
     }
 
     return initialAndNeighborIndices;
@@ -186,12 +200,12 @@ class MineHelper {
   /**
    * Converts coordinate to index
    *
-   * @param x - the x-coordinate
-   * @param y - the y-coordinate
+   * @param row - the row
+   * @param col - the col
    * @param width - the width
    */
-  private coordinateToIndex(x: number, y: number, width: number): number {
-    return x * width + y + 1;
+  private coordinateToIndex(row: number, col: number, width: number): number {
+    return row * width + col + 1;
   }
 
   /**
@@ -201,10 +215,10 @@ class MineHelper {
    * @param width the width
    */
   private indexToCoordinate(index: number, width: number): Coordinates {
-    const x = Math.floor((index - 1) / width);
-    const y = (index - 1) % width;
+    const row = Math.floor((index - 1) / width);
+    const col = (index - 1) % width;
 
-    return { x, y };
+    return { row: row, col: col };
   }
 }
 

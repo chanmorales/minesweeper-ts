@@ -3,10 +3,15 @@ import { Modal } from "antd";
 
 interface GameOverDialogProps {
   open: boolean;
+  onCancel: () => void;
 }
 
-const GameOverDialog: FC<GameOverDialogProps> = ({ open }) => {
-  return <Modal open={open}>{"Game Over"}</Modal>;
+const GameOverDialog: FC<GameOverDialogProps> = ({ open, onCancel }) => {
+  return (
+    <Modal open={open} onCancel={onCancel}>
+      {"Game Over"}
+    </Modal>
+  );
 };
 
 export default GameOverDialog;
