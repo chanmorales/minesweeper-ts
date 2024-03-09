@@ -1,14 +1,17 @@
-import React, { FC, useMemo, useState } from "react";
+import React, { FC, useMemo } from "react";
 import "../styles/Game.css";
 import { Button } from "antd";
 import MineIcon from "../common/icons/MineIcon";
 import FlagIcon from "../common/icons/FlagIcon";
+import { FieldState } from "../types/Game";
 
 interface MineCellProps {
   x: number;
   y: number;
   bombs: number;
-  onOpen: (x: number, y: number) => void;
+  fieldState: FieldState;
+  onExplore: (x: number, y: number) => void;
+  onUpdateFlag: (x: number, y: number) => void;
   disabled?: boolean;
 }
 
@@ -16,34 +19,36 @@ const MineCell: FC<MineCellProps> = ({
   x,
   y,
   bombs,
-  onOpen,
+  fieldState,
+  onExplore,
+  onUpdateFlag,
   disabled = false,
 }) => {
-  const [isOpened, setIsOpened] = useState(false);
-  const [isFlagged, setIsFlagged] = useState(false);
+  const onFieldExplore = (e: React.MouseEvent) => {
+    // Can't explore flagged or already opened field
+    if (fieldState === FieldState.FLAGGED || fieldState === FieldState.OPENED)
+      return;
 
-  const handleLeftClick = (e: React.MouseEvent) => {
-    // Flagged mine can't be opened, as well as already opened mine
-    if (isFlagged || isOpened) return;
-    setIsOpened(true);
-
-    onOpen(x, y);
+    // Explore minefield
+    onExplore(x, y);
 
     // Prevent default action
     e.preventDefault();
   };
 
-  const handleRightClick = (e: React.MouseEvent) => {
-    // Opened mine can't be flagged / un-flagged anymore
-    if (isOpened) return;
-    setIsFlagged(!isFlagged);
+  const onFieldFlag = (e: React.MouseEvent) => {
+    // Can't flag already opened field
+    if (fieldState === FieldState.OPENED) return;
+
+    // Update flag
+    onUpdateFlag(x, y);
 
     // Prevent default action
     e.preventDefault();
   };
 
   const renderIcon = useMemo(() => {
-    if (isOpened) {
+    if (fieldState === FieldState.OPENED) {
       if (bombs > 0) {
         return bombs;
       } else if (bombs === 0) {
@@ -51,22 +56,19 @@ const MineCell: FC<MineCellProps> = ({
       } else {
         return <MineIcon />;
       }
+    } else if (fieldState === FieldState.FLAGGED) {
+      return <FlagIcon />;
     } else {
-      if (isFlagged) {
-        return <FlagIcon />;
-      } else {
-        // Change to empty
-        return bombs;
-      }
+      return "";
     }
-  }, [bombs, isFlagged, isOpened]);
+  }, [bombs, fieldState]);
 
   return (
     <Button
-      className={`mine-cell ${isOpened && "opened"} ${disabled && "disabled"}`}
+      className={`mine-cell ${fieldState === FieldState.OPENED && "opened"} ${disabled && "disabled"}`}
       icon={renderIcon}
-      onClick={handleLeftClick}
-      onContextMenu={handleRightClick}
+      onClick={onFieldExplore}
+      onContextMenu={onFieldFlag}
       disabled={disabled}
     />
   );

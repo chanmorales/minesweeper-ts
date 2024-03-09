@@ -1,13 +1,15 @@
 import MineCell from "../../components/MineCell";
 import { Meta, StoryObj } from "@storybook/react";
+import { FieldState } from "../../types/Game";
 
 interface MineCellMeta {
   bombs: number;
+  fieldState: FieldState;
 }
 
 const meta: Meta<MineCellMeta> = {
   title: "Component/Mine Cell",
-  render: ({ bombs }) => (
+  render: ({ bombs, fieldState }) => (
     <div
       style={{
         backgroundColor: "#282c34",
@@ -18,12 +20,15 @@ const meta: Meta<MineCellMeta> = {
         x={0}
         y={0}
         bombs={bombs}
-        onOpen={(x, y) => console.log(`opened [${x}, ${y}]`)}
+        fieldState={fieldState}
+        onExplore={() => console.log("Explored...")}
+        onUpdateFlag={() => console.log("Flagged / Unflagged...")}
       />
     </div>
   ),
   args: {
     bombs: 0,
+    fieldState: FieldState.UNEXPLORED,
   },
 };
 
