@@ -1,11 +1,11 @@
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 import MineCell from "./MineCell";
 import MineHelper from "../utils/MineHelper";
 import { FieldState } from "../types/Game";
 import GameOverDialog from "./dialogs/GameOverDialog";
 import { useMineField } from "../hooks/useMineField";
-import { Spin } from "antd";
 import GameDetails from "./GameDetails";
+import Loading from "../common/animations/Loading";
 
 interface MineFieldProps {
   width: number;
@@ -22,8 +22,41 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
   const [isReady, setIsReady] = useState(false);
   const [isFieldGenerated, setIsFieldGenerated] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showGameOver, setIsShowGameOver] = useState(false);
+  const [showGameOver, setShowGameOver] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
+
+  const exploreNeighbor = useCallback(
+    (
+      row: number,
+      col: number,
+      fieldState: FieldState[][],
+      mineField: number[][],
+      exploreMine: (
+        row: number,
+        col: number,
+        fieldState: FieldState[][],
+        mineField: number[][]
+      ) => void
+    ) => {
+      // Explore left
+      exploreMine(row, col - 1, fieldState, mineField);
+      // Explore upper-left
+      exploreMine(row - 1, col - 1, fieldState, mineField);
+      // Explore lower-left
+      exploreMine(row + 1, col - 1, fieldState, mineField);
+      // Explore right
+      exploreMine(row, col + 1, fieldState, mineField);
+      // Explore upper-right
+      exploreMine(row - 1, col + 1, fieldState, mineField);
+      // Explore lower-right
+      exploreMine(row + 1, col + 1, fieldState, mineField);
+      // Explore up
+      exploreMine(row - 1, col, fieldState, mineField);
+      // Explore down
+      exploreMine(row + 1, col, fieldState, mineField);
+    },
+    []
+  );
 
   const exploreMine = useCallback(
     (
@@ -33,39 +66,23 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
       mineField: number[][]
     ) => {
       // Do not open when not unexplored
-      if (fieldState[row][col] !== FieldState.UNEXPLORED) return;
+      if (
+        row < 0 ||
+        col < 0 ||
+        row >= height ||
+        col >= width ||
+        fieldState[row][col] !== FieldState.UNEXPLORED
+      ) {
+        return;
+      }
 
       // Open current cell and if mine count is 0, open neighbors as well
       fieldState[row][col] = FieldState.OPENED;
       if (mineField[row][col] === 0) {
-        if (col > 0) {
-          // Explore left
-          exploreMine(row, col - 1, fieldState, mineField);
-          // Explore upper-left
-          if (row > 0) exploreMine(row - 1, col - 1, fieldState, mineField);
-          // Explore lower-left
-          if (row < height - 1)
-            exploreMine(row + 1, col - 1, fieldState, mineField);
-        }
-
-        if (col < width - 1) {
-          // Explore right
-          exploreMine(row, col + 1, fieldState, mineField);
-          // Explore upper-right
-          if (row > 0) exploreMine(row - 1, col + 1, fieldState, mineField);
-          // Explore lower-right
-          if (row < height - 1)
-            exploreMine(row + 1, col + 1, fieldState, mineField);
-        }
-
-        // Explore up
-        if (row > 0) exploreMine(row - 1, col, fieldState, mineField);
-
-        // Explore down
-        if (row < height - 1) exploreMine(row + 1, col, fieldState, mineField);
+        exploreNeighbor(row, col, fieldState, mineField, exploreMine);
       }
     },
-    [height, width]
+    [exploreNeighbor, height, width]
   );
 
   const openAllMine = useCallback(() => {
@@ -92,13 +109,87 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
     }
   }, [fieldState]);
 
+  const countNeighborFlag = useCallback(
+    (row: number, col: number) => {
+      if (!fieldState) return 0;
+
+      const offsets = [
+        [-1, -1],
+        [-1, 0],
+        [-1, 1],
+        [0, -1],
+        [0, 1],
+        [1, -1],
+        [1, 0],
+        [1, 1],
+      ];
+
+      let flagCount = 0;
+      for (const offset of offsets) {
+        const newRow = row + offset[0];
+        const newCol = col + offset[1];
+
+        if (
+          newRow >= 0 &&
+          newRow < height &&
+          newCol >= 0 &&
+          newCol < width &&
+          fieldState[newRow][newCol] === FieldState.FLAGGED
+        ) {
+          flagCount++;
+        }
+      }
+
+      return flagCount;
+    },
+    [fieldState, height, width]
+  );
+
+  const checkGameOver = useCallback(() => {
+    // Game over when all non mine cell is explored
+    const openedCellCount = countOpen();
+    if (openedCellCount === width * height - bombs) {
+      setIsGameOver(true);
+      setShowGameOver(true);
+    }
+  }, [bombs, countOpen, height, width]);
+
+  const onExploreNeighbor = useCallback(
+    (row: number, col: number) => {
+      if (!fieldState || !mineField) return;
+
+      // Explore neighbor only if flag count is equal to bomb count
+      const flagCount = countNeighborFlag(row, col);
+      if (flagCount === mineField[row][col]) {
+        const updatedFieldState = [...fieldState];
+
+        exploreNeighbor(row, col, updatedFieldState, mineField, (r, c, f, m) =>
+          exploreMine(r, c, f, m)
+        );
+        dispatch({ type: "SET_FIELD_STATE", payload: updatedFieldState });
+
+        // Check for game over
+        checkGameOver();
+      }
+    },
+    [
+      checkGameOver,
+      countNeighborFlag,
+      dispatch,
+      exploreMine,
+      exploreNeighbor,
+      fieldState,
+      mineField,
+    ]
+  );
+
   const onExplore = useCallback(
     (row: number, col: number) => {
       if (!mineField || !fieldState) return;
 
       // Check if already game over
       if (isGameOver) {
-        setIsShowGameOver(true);
+        setShowGameOver(true);
         return;
       }
 
@@ -123,24 +214,20 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
         // Game over when a mine is opened
         openAllMine();
         setIsGameOver(true);
-        setIsShowGameOver(true);
+        setShowGameOver(true);
       } else {
         // Explore mine and update the field state
         const updatedFieldState = [...fieldState];
         exploreMine(row, col, updatedFieldState, updatedMineField);
         dispatch({ type: "SET_FIELD_STATE", payload: updatedFieldState });
 
-        // Game over when all non mine cell is explored
-        const openedCellCount = countOpen();
-        if (openedCellCount === width * height - bombs) {
-          setIsGameOver(true);
-          setIsShowGameOver(true);
-        }
+        // Check for game over
+        checkGameOver();
       }
     },
     [
       bombs,
-      countOpen,
+      checkGameOver,
       dispatch,
       exploreMine,
       height,
@@ -167,27 +254,6 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
     [dispatch, fieldState]
   );
 
-  const renderMineField = useMemo(() => {
-    return (
-      mineField &&
-      fieldState &&
-      mineField.map((row, i) => (
-        <div key={i} className="mine-field-row flex">
-          {row.map((_, j) => (
-            <MineCell
-              key={`${i}-${j}`}
-              x={i}
-              y={j}
-              onExplore={onExplore}
-              onUpdateFlag={onUpdateFlag}
-              disabled={isGenerating}
-            />
-          ))}
-        </div>
-      ))
-    );
-  }, [isGenerating, onExplore, fieldState, mineField, onUpdateFlag]);
-
   useEffect(() => {
     // Initialize minefield to all zero's and field state to all unexplored
     const mineField = [];
@@ -209,16 +275,38 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
   }, [isFieldGenerated]);
 
   return !isReady ? (
-    <Spin />
+    <Loading />
   ) : (
     <div>
       <div className="game-details">
         <GameDetails bombs={99} />
       </div>
-      <div className="mine-field">{<>{renderMineField}</>}</div>
+      <div className="mine-field">
+        {
+          <>
+            {mineField &&
+              fieldState &&
+              mineField.map((row, i) => (
+                <div key={`row-${i}`} className="mine-field-row flex">
+                  {row.map((_, j) => (
+                    <MineCell
+                      key={`mine-cell-${i}-${j}`}
+                      x={i}
+                      y={j}
+                      onExplore={onExplore}
+                      onExploreNeighbor={onExploreNeighbor}
+                      onUpdateFlag={onUpdateFlag}
+                      disabled={isGenerating}
+                    />
+                  ))}
+                </div>
+              ))}
+          </>
+        }
+      </div>
       <GameOverDialog
         open={showGameOver}
-        onCancel={() => setIsShowGameOver(false)}
+        onCancel={() => setShowGameOver(false)}
       />
     </div>
   );
