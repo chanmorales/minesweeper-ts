@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 import MineCell from "./MineCell";
 import MineHelper from "../utils/MineHelper";
 import { FieldState } from "../types/Game";
@@ -254,35 +254,6 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
     [dispatch, fieldState]
   );
 
-  const renderMineField = useMemo(() => {
-    return (
-      mineField &&
-      fieldState &&
-      mineField.map((row, i) => (
-        <div key={i} className="mine-field-row flex">
-          {row.map((_, j) => (
-            <MineCell
-              key={`${i}-${j}`}
-              x={i}
-              y={j}
-              onExplore={onExplore}
-              onExploreNeighbor={onExploreNeighbor}
-              onUpdateFlag={onUpdateFlag}
-              disabled={isGenerating}
-            />
-          ))}
-        </div>
-      ))
-    );
-  }, [
-    isGenerating,
-    onExplore,
-    onExploreNeighbor,
-    fieldState,
-    mineField,
-    onUpdateFlag,
-  ]);
-
   useEffect(() => {
     // Initialize minefield to all zero's and field state to all unexplored
     const mineField = [];
@@ -310,7 +281,29 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
       <div className="game-details">
         <GameDetails bombs={99} />
       </div>
-      <div className="mine-field">{<>{renderMineField}</>}</div>
+      <div className="mine-field">
+        {
+          <>
+            {mineField &&
+              fieldState &&
+              mineField.map((row, i) => (
+                <div key={`row-${i}`} className="mine-field-row flex">
+                  {row.map((_, j) => (
+                    <MineCell
+                      key={`mine-cell-${i}-${j}`}
+                      x={i}
+                      y={j}
+                      onExplore={onExplore}
+                      onExploreNeighbor={onExploreNeighbor}
+                      onUpdateFlag={onUpdateFlag}
+                      disabled={isGenerating}
+                    />
+                  ))}
+                </div>
+              ))}
+          </>
+        }
+      </div>
       <GameOverDialog
         open={showGameOver}
         onCancel={() => setShowGameOver(false)}
