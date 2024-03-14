@@ -4,16 +4,20 @@ import React, { createContext, FC, ReactNode, useReducer } from "react";
 interface MineFieldState {
   mineField: number[][] | null;
   fieldState: FieldState[][] | null;
+  flagCount: number;
 }
 
 const initialState: MineFieldState = {
   mineField: null,
   fieldState: null,
+  flagCount: 0,
 };
 
 type Action =
   | { type: "SET_MINE_FIELD"; payload: number[][] }
-  | { type: "SET_FIELD_STATE"; payload: FieldState[][] };
+  | { type: "SET_FIELD_STATE"; payload: FieldState[][] }
+  | { type: "INCREMENT_FLAG_COUNT" }
+  | { type: "DECREMENT_FLAG_COUNT" };
 
 const reducer = (state: MineFieldState, action: Action) => {
   switch (action.type) {
@@ -21,6 +25,10 @@ const reducer = (state: MineFieldState, action: Action) => {
       return { ...state, mineField: action.payload };
     case "SET_FIELD_STATE":
       return { ...state, fieldState: action.payload };
+    case "INCREMENT_FLAG_COUNT":
+      return { ...state, flagCount: state.flagCount + 1 };
+    case "DECREMENT_FLAG_COUNT":
+      return { ...state, flagCount: state.flagCount - 1 };
     default:
       return state;
   }

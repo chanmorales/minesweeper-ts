@@ -4,6 +4,8 @@ import MineHelper from "../utils/MineHelper";
 import { FieldState } from "../types/Game";
 import GameOverDialog from "./dialogs/GameOverDialog";
 import { useMineField } from "../hooks/useMineField";
+import { Spin } from "antd";
+import GameDetails from "./GameDetails";
 
 interface MineFieldProps {
   width: number;
@@ -12,12 +14,16 @@ interface MineFieldProps {
 }
 
 const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
-  const { state, dispatch } = useMineField();
+  const {
+    state: { fieldState, mineField },
+    dispatch,
+  } = useMineField();
 
   const [isReady, setIsReady] = useState(false);
   const [isFieldGenerated, setIsFieldGenerated] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showGameOver, setIsShowGameOver] = useState(false);
+  const [isGameOver, setIsGameOver] = useState(false);
 
   const exploreMine = useCallback(
     (
@@ -63,82 +69,115 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
   );
 
   const openAllMine = useCallback(() => {
-    if (!state.fieldState) return;
+    if (!fieldState) return;
 
-    const updatedFieldState = [...state.fieldState];
+    const updatedFieldState = [...fieldState];
     updatedFieldState.forEach((row, x) => {
-      row.forEach((cell, y) => {
-        if (state.mineField && state.mineField[x][y] === -1) {
+      row.forEach((_, y) => {
+        if (mineField && mineField[x][y] === -1) {
           updatedFieldState[x][y] = FieldState.OPENED;
         }
       });
     });
     dispatch({ type: "SET_FIELD_STATE", payload: updatedFieldState });
-  }, [dispatch, state.fieldState, state.mineField]);
+  }, [dispatch, fieldState, mineField]);
+
+  const countOpen = useCallback(() => {
+    if (fieldState) {
+      return fieldState
+        .flatMap((row) => row)
+        .filter((e) => e === FieldState.OPENED).length;
+    } else {
+      return 0;
+    }
+  }, [fieldState]);
 
   const onExplore = useCallback(
     (row: number, col: number) => {
-      if (!state.mineField || !state.fieldState) return;
+      if (!mineField || !fieldState) return;
 
-      // Generate minefield if not yet generated
-      let mineField;
-      if (!isFieldGenerated) {
-        setIsGenerating(true);
-        mineField = MineHelper.generateField(width, height, bombs, row, col);
-        dispatch({ type: "SET_MINE_FIELD", payload: mineField });
-        setIsFieldGenerated(true);
-      } else {
-        mineField = [...state.mineField];
+      // Check if already game over
+      if (isGameOver) {
+        setIsShowGameOver(true);
+        return;
       }
 
-      if (mineField[row][col] === -1) {
+      // Generate minefield if not yet generated
+      let updatedMineField;
+      if (!isFieldGenerated) {
+        setIsGenerating(true);
+        updatedMineField = MineHelper.generateField(
+          width,
+          height,
+          bombs,
+          row,
+          col
+        );
+        dispatch({ type: "SET_MINE_FIELD", payload: updatedMineField });
+        setIsFieldGenerated(true);
+      } else {
+        updatedMineField = [...mineField];
+      }
+
+      if (updatedMineField[row][col] === -1) {
         // Game over when a mine is opened
         openAllMine();
+        setIsGameOver(true);
         setIsShowGameOver(true);
       } else {
         // Explore mine and update the field state
-        const updatedFieldState = [...state.fieldState];
-        exploreMine(row, col, updatedFieldState, mineField);
+        const updatedFieldState = [...fieldState];
+        exploreMine(row, col, updatedFieldState, updatedMineField);
         dispatch({ type: "SET_FIELD_STATE", payload: updatedFieldState });
+
+        // Game over when all non mine cell is explored
+        const openedCellCount = countOpen();
+        if (openedCellCount === width * height - bombs) {
+          setIsGameOver(true);
+          setIsShowGameOver(true);
+        }
       }
     },
     [
       bombs,
+      countOpen,
       dispatch,
+      exploreMine,
       height,
       isFieldGenerated,
-      state.fieldState,
-      state.mineField,
-      exploreMine,
-      width,
+      isGameOver,
       openAllMine,
+      fieldState,
+      mineField,
+      width,
     ]
   );
 
   const onUpdateFlag = useCallback(
     (row: number, col: number) => {
-      if (!state.fieldState) return;
+      if (!fieldState) return;
 
-      const updatedFieldState = [...state.fieldState];
+      const updatedFieldState = [...fieldState];
+      updatedFieldState[row][col] === FieldState.FLAGGED
+        ? dispatch({ type: "DECREMENT_FLAG_COUNT" })
+        : dispatch({ type: "INCREMENT_FLAG_COUNT" });
       updatedFieldState[row][col] ^= 1;
       dispatch({ type: "SET_FIELD_STATE", payload: updatedFieldState });
     },
-    [dispatch, state.fieldState]
+    [dispatch, fieldState]
   );
 
   const renderMineField = useMemo(() => {
     return (
-      state.mineField &&
-      state.fieldState &&
-      state.mineField.map((row, i) => (
+      mineField &&
+      fieldState &&
+      mineField.map((row, i) => (
         <div key={i} className="mine-field-row flex">
-          {row.map((field, j) => (
+          {row.map((_, j) => (
             <MineCell
               key={`${i}-${j}`}
               x={i}
               y={j}
-              bombs={state.mineField?.[i][j] ?? 0}
-              fieldState={state.fieldState?.[i][j] ?? FieldState.UNEXPLORED}
               onExplore={onExplore}
               onUpdateFlag={onUpdateFlag}
               disabled={isGenerating}
@@ -147,13 +186,7 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
         </div>
       ))
     );
-  }, [
-    isGenerating,
-    onExplore,
-    state.fieldState,
-    state.mineField,
-    onUpdateFlag,
-  ]);
+  }, [isGenerating, onExplore, fieldState, mineField, onUpdateFlag]);
 
   useEffect(() => {
     // Initialize minefield to all zero's and field state to all unexplored
@@ -175,14 +208,19 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
     }
   }, [isFieldGenerated]);
 
-  return (
-    <>
-      <div className="mine-field">{isReady && <>{renderMineField}</>}</div>
+  return !isReady ? (
+    <Spin />
+  ) : (
+    <div>
+      <div className="game-details">
+        <GameDetails bombs={99} />
+      </div>
+      <div className="mine-field">{<>{renderMineField}</>}</div>
       <GameOverDialog
         open={showGameOver}
         onCancel={() => setIsShowGameOver(false)}
       />
-    </>
+    </div>
   );
 };
 
