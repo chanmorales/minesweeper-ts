@@ -4,45 +4,51 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
+  position: relative;
 }
 
-.mine-field-container, .game-details-container {
-  border: 2px solid #7CB9E8;
-  min-height: 80vh;
-  max-height: 80vh;
+.game-details {
+  height: 32px;
+  color: white;
 }
 
 .mine-field-container {
-  width: 70vw;
-}
-
-.game-details-container {
-  width: 20vw;
-  margin-left: 20px;
+  width: 90vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .mine-cell {
   color: white;
+  background-color: #00bfff;
   padding: 0;
   text-align: center;
   text-decoration: none;
   width: 32px;
   height: 32px;
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer !important;
-  margin: 2px;
+  margin: 0;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border: none;
   border-radius: 2px;
-  background-color: #20638f;
 }
 
 .mine-cell.opened {
-  background-color: #2980b9 !important;
+  background-color: #3b3b3b !important;
+}
+
+.mine-cell.opened.mine {
+  background-color: #00bfff !important;
+}
+
+.mine-cell.opened.mine.click-opened {
+  background-color: indianred !important;
 }
 
 .mine-cell.disabled {
