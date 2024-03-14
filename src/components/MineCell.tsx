@@ -10,6 +10,7 @@ interface MineCellProps {
   x: number;
   y: number;
   onExplore: (x: number, y: number) => void;
+  onExploreNeighbor: (x: number, y: number) => void;
   onUpdateFlag: (x: number, y: number) => void;
   disabled?: boolean;
 }
@@ -18,6 +19,7 @@ const MineCell: FC<MineCellProps> = ({
   x,
   y,
   onExplore,
+  onExploreNeighbor,
   onUpdateFlag,
   disabled = false,
 }) => {
@@ -28,18 +30,19 @@ const MineCell: FC<MineCellProps> = ({
 
   const onFieldExplore = (e: React.MouseEvent) => {
     // Can't explore flagged or already opened field
-    if (
-      !fieldState ||
-      fieldState[x][y] === FieldState.FLAGGED ||
-      fieldState[x][y] === FieldState.OPENED
-    ) {
+    if (!fieldState || fieldState[x][y] === FieldState.FLAGGED) {
       e.preventDefault();
       return;
     }
 
-    // Explore minefield
-    setIsClickOpened(true);
-    onExplore(x, y);
+    if (fieldState[x][y] === FieldState.OPENED) {
+      // Explore neighbor of already opened field
+      onExploreNeighbor(x, y);
+    } else if (fieldState[x][y] === FieldState.UNEXPLORED) {
+      // Explore minefield
+      setIsClickOpened(true);
+      onExplore(x, y);
+    }
 
     // Prevent default action
     e.preventDefault();

@@ -31,6 +31,7 @@ const meta: Meta<MineCellMeta> = {
             x={0}
             y={0}
             onExplore={() => console.log("Explored...")}
+            onExploreNeighbor={() => console.log("Neighbor explored...")}
             onUpdateFlag={() => console.log("Flagged / Unflagged...")}
           />
         </MineFieldContext.Provider>
