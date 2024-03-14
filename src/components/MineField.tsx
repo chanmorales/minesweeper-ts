@@ -4,8 +4,8 @@ import MineHelper from "../utils/MineHelper";
 import { FieldState } from "../types/Game";
 import GameOverDialog from "./dialogs/GameOverDialog";
 import { useMineField } from "../hooks/useMineField";
-import { Spin } from "antd";
 import GameDetails from "./GameDetails";
+import Loading from "../common/animations/Loading";
 
 interface MineFieldProps {
   width: number;
@@ -209,7 +209,7 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
   }, [isFieldGenerated]);
 
   return !isReady ? (
-    <Spin />
+    <Loading />
   ) : (
     <div>
       <div className="game-details">
