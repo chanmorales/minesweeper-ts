@@ -1,11 +1,11 @@
 import { FC, ImgHTMLAttributes } from "react";
-import flag from "../../assets/flag.png";
+import exploded from "../../assets/exploded.png";
 
-const FlagIcon: FC<
+const ExplodedIcon: FC<
   Omit<ImgHTMLAttributes<HTMLImageElement>, "onContextMenu">
-> = ({ width = "20px", height = "20px", alt = "flag", ...rest }) => (
+> = ({ width = "32px", height = "32px", alt = "exploded", ...rest }) => (
   <img
-    src={flag}
+    src={exploded}
     style={{ width: width, height: height }}
     alt={alt}
     onContextMenu={(e) => e.preventDefault()}
@@ -13,4 +13,4 @@ const FlagIcon: FC<
   />
 );
 
-export default FlagIcon;
+export default ExplodedIcon;

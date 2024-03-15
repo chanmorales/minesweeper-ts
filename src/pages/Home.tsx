@@ -1,8 +1,8 @@
 import "../styles/animation.css";
 import "../styles/Home.css";
-import mine from "../assets/mine.svg";
 import { Button } from "antd";
 import { useNavigate } from "react-router-dom";
+import MineIcon from "../common/icons/MineIcon";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -13,7 +13,12 @@ const Home = () => {
 
   return (
     <div className="home-container">
-      <img className="home-logo" src={mine} alt="app-logo" />
+      <MineIcon
+        className="home-logo"
+        alt="app-logo"
+        height="40vmin"
+        width="40vmin"
+      />
       <div className="home-title text-center mt-[20px]">
         <h1 className="Title text-4xl font-bold text-gray-400">MINESWEEPER</h1>
       </div>
