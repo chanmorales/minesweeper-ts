@@ -1,7 +1,16 @@
+import { FC, ImgHTMLAttributes } from "react";
 import mine from "../../assets/mine.svg";
 
-const MineIcon = () => (
-  <img src={mine} style={{ height: "20px", width: "20px" }} alt="mine" />
+const MineIcon: FC<
+  Omit<ImgHTMLAttributes<HTMLImageElement>, "onContextMenu">
+> = ({ width = "20px", height = "20px", alt = "mine", ...rest }) => (
+  <img
+    src={mine}
+    style={{ height: height, width: width }}
+    alt={alt}
+    onContextMenu={(e) => e.preventDefault()}
+    {...rest}
+  />
 );
 
 export default MineIcon;

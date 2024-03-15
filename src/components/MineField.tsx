@@ -24,6 +24,7 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showGameOver, setShowGameOver] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
+  const [isExploded, setIsExploded] = useState(false);
 
   const exploreNeighbor = useCallback(
     (
@@ -149,6 +150,7 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
     // Game over when all non mine cell is explored
     const openedCellCount = countOpen();
     if (openedCellCount === width * height - bombs) {
+      setIsExploded(false);
       setIsGameOver(true);
       setShowGameOver(true);
     }
@@ -213,6 +215,7 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
       if (updatedMineField[row][col] === -1) {
         // Game over when a mine is opened
         openAllMine();
+        setIsExploded(true);
         setIsGameOver(true);
         setShowGameOver(true);
       } else {
@@ -306,7 +309,8 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
       </div>
       <GameOverDialog
         open={showGameOver}
-        onCancel={() => setShowGameOver(false)}
+        onClose={() => setShowGameOver(false)}
+        isExploded={isExploded}
       />
     </div>
   );

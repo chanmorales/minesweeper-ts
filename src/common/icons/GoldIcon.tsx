@@ -1,11 +1,11 @@
 import { FC, ImgHTMLAttributes } from "react";
-import flag from "../../assets/flag.png";
+import gold from "../../assets/gold.png";
 
-const FlagIcon: FC<
+const GoldIcon: FC<
   Omit<ImgHTMLAttributes<HTMLImageElement>, "onContextMenu">
-> = ({ width = "20px", height = "20px", alt = "flag", ...rest }) => (
+> = ({ width = "32px", height = "32px", alt = "gold", ...rest }) => (
   <img
-    src={flag}
+    src={gold}
     style={{ width: width, height: height }}
     alt={alt}
     onContextMenu={(e) => e.preventDefault()}
@@ -13,4 +13,4 @@ const FlagIcon: FC<
   />
 );
 
-export default FlagIcon;
+export default GoldIcon;

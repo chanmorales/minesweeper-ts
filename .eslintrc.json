@@ -30,6 +30,16 @@
       "version": "detect"
     }
   },
+  "overrides": [
+    {
+      "files": [
+        "**/*.stories.tsx"
+      ],
+      "rules": {
+        "react-hooks/rules-of-hooks": "off"
+      }
+    }
+  ],
   "rules": {
     "max-len": [
       2,
