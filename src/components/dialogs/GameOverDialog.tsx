@@ -17,6 +17,8 @@ const GameOverDialog: FC<GameOverDialogProps> = ({
     <Modal
       open={open}
       onCancel={onClose}
+      keyboard={false}
+      closable={false}
       styles={{
         content: { backgroundColor: "#282c34" },
         body: {

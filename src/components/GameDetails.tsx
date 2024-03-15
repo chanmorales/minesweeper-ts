@@ -11,11 +11,28 @@ const GameDetails: FC<GameDetailsProps> = ({ bombs }) => {
 
   return (
     <>
-      <div id="flag-count-container" className="flex justify-center">
-        <div id="flag-icon-container" className="">
-          <FlagIcon />
+      <div
+        id="game-details-container"
+        className="flex justify-between relative">
+        <div id="game-difficulty-container" className="absolute">
+          {
+            // TODO Change this static value
+            "Difficulty: Extreme"
+          }
         </div>
-        {`: ${bombs - state.flagCount}`}
+        <div
+          id="timer-container"
+          className="absolute left-[50%]"
+          style={{ transform: "translateX(-50%)" }}>
+          {
+            // TODO Timer
+            "00:00"
+          }
+        </div>
+        <div id="flag-count-container" className="flex absolute right-2.5">
+          <FlagIcon className="mr-1" />
+          {`: ${bombs - state.flagCount}`}
+        </div>
       </div>
     </>
   );
