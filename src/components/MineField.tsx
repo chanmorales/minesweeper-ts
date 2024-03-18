@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import MineCell from "./MineCell";
 import MineHelper from "../utils/MineHelper";
 import { FieldState } from "../types/Game";
@@ -6,16 +6,11 @@ import GameOverDialog from "./dialogs/GameOverDialog";
 import { useMineField } from "../hooks/useMineField";
 import GameDetails from "./GameDetails";
 import Loading from "../common/animations/Loading";
+import SelectGameDifficultyDialog from "./dialogs/SelectGameDifficultyDialog";
 
-interface MineFieldProps {
-  width: number;
-  height: number;
-  bombs: number;
-}
-
-const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
+const MineField = () => {
   const {
-    state: { fieldState, mineField },
+    state: { fieldState, mineField, difficulty },
     dispatch,
   } = useMineField();
 
@@ -25,6 +20,7 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
   const [showGameOver, setShowGameOver] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
   const [isExploded, setIsExploded] = useState(false);
+  const [isDifficultySelectOpen, setIsDifficultySelectOpen] = useState(false);
 
   const exploreNeighbor = useCallback(
     (
@@ -68,10 +64,11 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
     ) => {
       // Do not open when not unexplored
       if (
+        !difficulty ||
         row < 0 ||
         col < 0 ||
-        row >= height ||
-        col >= width ||
+        row >= difficulty.height ||
+        col >= difficulty.width ||
         fieldState[row][col] !== FieldState.UNEXPLORED
       ) {
         return;
@@ -83,7 +80,7 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
         exploreNeighbor(row, col, fieldState, mineField, exploreMine);
       }
     },
-    [exploreNeighbor, height, width]
+    [difficulty, exploreNeighbor]
   );
 
   const openAllMine = useCallback(() => {
@@ -112,7 +109,7 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
 
   const countNeighborFlag = useCallback(
     (row: number, col: number) => {
-      if (!fieldState) return 0;
+      if (!fieldState || !difficulty) return 0;
 
       const offsets = [
         [-1, -1],
@@ -132,9 +129,9 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
 
         if (
           newRow >= 0 &&
-          newRow < height &&
+          newRow < difficulty.height &&
           newCol >= 0 &&
-          newCol < width &&
+          newCol < difficulty.width &&
           fieldState[newRow][newCol] === FieldState.FLAGGED
         ) {
           flagCount++;
@@ -143,18 +140,23 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
 
       return flagCount;
     },
-    [fieldState, height, width]
+    [difficulty, fieldState]
   );
 
   const checkGameOver = useCallback(() => {
+    if (!difficulty) return;
+
     // Game over when all non mine cell is explored
     const openedCellCount = countOpen();
-    if (openedCellCount === width * height - bombs) {
+    if (
+      openedCellCount ===
+      difficulty.width * difficulty.height - difficulty.bombs
+    ) {
       setIsExploded(false);
       setIsGameOver(true);
       setShowGameOver(true);
     }
-  }, [bombs, countOpen, height, width]);
+  }, [countOpen, difficulty]);
 
   const onExploreNeighbor = useCallback(
     (row: number, col: number) => {
@@ -187,7 +189,7 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
 
   const onExplore = useCallback(
     (row: number, col: number) => {
-      if (!mineField || !fieldState) return;
+      if (!mineField || !fieldState || !difficulty) return;
 
       // Check if already game over
       if (isGameOver) {
@@ -200,9 +202,9 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
       if (!isFieldGenerated) {
         setIsGenerating(true);
         updatedMineField = MineHelper.generateField(
-          width,
-          height,
-          bombs,
+          difficulty.width,
+          difficulty.height,
+          difficulty.bombs,
           row,
           col
         );
@@ -229,17 +231,15 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
       }
     },
     [
-      bombs,
       checkGameOver,
+      difficulty,
       dispatch,
       exploreMine,
-      height,
       isFieldGenerated,
       isGameOver,
       openAllMine,
       fieldState,
       mineField,
-      width,
     ]
   );
 
@@ -257,19 +257,40 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
     [dispatch, fieldState]
   );
 
+  const onNewGame = useCallback(() => {
+    dispatch({ type: "NEW_GAME" });
+    setIsReady(false);
+    setIsFieldGenerated(false);
+    setIsGenerating(false);
+    setShowGameOver(false);
+    setIsGameOver(false);
+    setIsExploded(false);
+    setIsDifficultySelectOpen(false);
+  }, [dispatch]);
+
   useEffect(() => {
+    if (!difficulty) {
+      setIsDifficultySelectOpen(true);
+    } else {
+      setIsDifficultySelectOpen(false);
+    }
+  }, [difficulty]);
+
+  useEffect(() => {
+    if (!difficulty) return;
+
     // Initialize minefield to all zero's and field state to all unexplored
     const mineField = [];
     const fieldState = [];
-    for (let i = 0; i < height; i++) {
-      mineField.push(new Array(width).fill(0));
-      fieldState.push(new Array(width).fill(FieldState.UNEXPLORED));
+    for (let i = 0; i < difficulty.height; i++) {
+      mineField.push(new Array(difficulty.width).fill(0));
+      fieldState.push(new Array(difficulty.width).fill(FieldState.UNEXPLORED));
     }
 
     dispatch({ type: "SET_MINE_FIELD", payload: mineField });
     dispatch({ type: "SET_FIELD_STATE", payload: fieldState });
     setIsReady(true);
-  }, [dispatch, height, width]);
+  }, [difficulty, dispatch]);
 
   useEffect(() => {
     if (isFieldGenerated) {
@@ -277,40 +298,55 @@ const MineField: FC<MineFieldProps> = ({ width, height, bombs }) => {
     }
   }, [isFieldGenerated]);
 
-  return !isReady ? (
-    <Loading />
-  ) : (
+  return (
     <div>
-      <div className="game-details">
-        <GameDetails bombs={99} />
-      </div>
-      <div className="mine-field">
-        {
-          <>
-            {mineField &&
-              fieldState &&
-              mineField.map((row, i) => (
-                <div key={`row-${i}`} className="mine-field-row flex">
-                  {row.map((_, j) => (
-                    <MineCell
-                      key={`mine-cell-${i}-${j}`}
-                      x={i}
-                      y={j}
-                      onExplore={onExplore}
-                      onExploreNeighbor={onExploreNeighbor}
-                      onUpdateFlag={onUpdateFlag}
-                      disabled={isGenerating}
-                    />
+      {!isReady ? (
+        <Loading />
+      ) : (
+        <>
+          <div className="game-details">
+            <GameDetails />
+          </div>
+          <div className="mine-field">
+            {
+              <>
+                {mineField &&
+                  fieldState &&
+                  mineField.map((row, i) => (
+                    <div key={`row-${i}`} className="mine-field-row flex">
+                      {row.map((_, j) => (
+                        <MineCell
+                          key={`mine-cell-${i}-${j}`}
+                          x={i}
+                          y={j}
+                          onExplore={onExplore}
+                          onExploreNeighbor={onExploreNeighbor}
+                          onUpdateFlag={onUpdateFlag}
+                          disabled={isGenerating}
+                        />
+                      ))}
+                    </div>
                   ))}
-                </div>
-              ))}
-          </>
-        }
-      </div>
+              </>
+            }
+          </div>
+        </>
+      )}
+      <SelectGameDifficultyDialog
+        onDifficultySelect={(difficulty) => {
+          dispatch({
+            type: "SET_DIFFICULTY",
+            payload: difficulty,
+          });
+        }}
+        open={isDifficultySelectOpen}
+      />
       <GameOverDialog
         open={showGameOver}
-        onClose={() => setShowGameOver(false)}
+        closable={false}
+        keyboard={false}
         isExploded={isExploded}
+        onNewGame={onNewGame}
       />
     </div>
   );

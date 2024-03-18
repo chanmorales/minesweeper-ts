@@ -61,3 +61,7 @@
   background-color: #2980b9 !important;
   color: white !important;
 }
+
+.game-details-hint:hover {
+  background-color: #282c34 !important;
+}

@@ -13,6 +13,7 @@ interface SelectGameDifficultyDialogProps extends Pick<ModalProps, "open"> {
 }
 
 const SelectGameDifficultyDialog: FC<SelectGameDifficultyDialogProps> = ({
+  onDifficultySelect,
   open,
 }) => {
   const [difficulty, setDifficulty] = useState<GameDifficulty>();
@@ -23,17 +24,18 @@ const SelectGameDifficultyDialog: FC<SelectGameDifficultyDialogProps> = ({
 
   const onOk = useCallback(() => {
     if (difficulty) {
-      console.log(difficulty);
+      onDifficultySelect(difficulty);
     } else {
       alert("Please select a difficulty...");
     }
-  }, [difficulty]);
+  }, [difficulty, onDifficultySelect]);
 
   return (
     <Modal
       open={open}
       closable={false}
       keyboard={false}
+      centered
       styles={{
         content: { backgroundColor: "#282c34", width: "300px" },
         header: {
