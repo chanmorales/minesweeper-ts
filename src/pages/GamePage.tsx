@@ -7,7 +7,7 @@ const GamePage = () => {
     <MineFieldProvider>
       <div className="game-container">
         <div className="mine-field-container">
-          <MineField width={30} height={16} bombs={15} />
+          <MineField />
         </div>
       </div>
     </MineFieldProvider>

@@ -2,6 +2,7 @@ import MineCell from "../../components/MineCell";
 import { Meta, StoryObj } from "@storybook/react";
 import { FieldState } from "../../types/Game";
 import { MineFieldContext } from "../../store/MineFieldStore";
+import { Easy } from "../../types/GameDifficulty";
 
 interface MineCellMeta {
   bombs: number;
@@ -24,6 +25,7 @@ const meta: Meta<MineCellMeta> = {
               mineField: [[bombs]],
               fieldState: [[fieldState]],
               flagCount: 0,
+              difficulty: Easy,
             },
             dispatch: () => console.log("dispatch"),
           }}>
