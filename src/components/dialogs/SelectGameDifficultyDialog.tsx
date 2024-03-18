@@ -1,4 +1,11 @@
-import { Modal, ModalProps, Radio, RadioChangeEvent, Space } from "antd";
+import {
+  message,
+  Modal,
+  ModalProps,
+  Radio,
+  RadioChangeEvent,
+  Space,
+} from "antd";
 import { FC, useCallback, useState } from "react";
 import {
   Advanced,
@@ -17,18 +24,25 @@ const SelectGameDifficultyDialog: FC<SelectGameDifficultyDialogProps> = ({
   open,
 }) => {
   const [difficulty, setDifficulty] = useState<GameDifficulty>();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const onChange = (e: RadioChangeEvent) => {
     setDifficulty(e.target.value);
   };
 
+  const warning = useCallback(() => {
+    messageApi.warning({
+      content: "Please select a game difficulty",
+    });
+  }, [messageApi]);
+
   const onOk = useCallback(() => {
     if (difficulty) {
       onDifficultySelect(difficulty);
     } else {
-      alert("Please select a difficulty...");
+      warning();
     }
-  }, [difficulty, onDifficultySelect]);
+  }, [difficulty, onDifficultySelect, warning]);
 
   return (
     <Modal
@@ -60,6 +74,7 @@ const SelectGameDifficultyDialog: FC<SelectGameDifficultyDialogProps> = ({
       cancelButtonProps={{ hidden: true }}
       okText="Start"
       okButtonProps={{ style: { backgroundColor: "#00bfff", color: "black" } }}>
+      {contextHolder}
       <Radio.Group onChange={onChange} buttonStyle="solid" size="large">
         <Space direction="vertical">
           <Radio.Button value={Easy}>{Easy.label}</Radio.Button>

@@ -7,12 +7,15 @@ import { useMineField } from "../hooks/useMineField";
 import GameDetails from "./GameDetails";
 import Loading from "../common/animations/Loading";
 import SelectGameDifficultyDialog from "./dialogs/SelectGameDifficultyDialog";
+import { useTimer } from "../hooks/useTimer";
 
 const MineField = () => {
   const {
     state: { fieldState, mineField, difficulty },
     dispatch,
   } = useMineField();
+
+  const { timerDispatch } = useTimer();
 
   const [isReady, setIsReady] = useState(false);
   const [isFieldGenerated, setIsFieldGenerated] = useState(false);
@@ -158,6 +161,36 @@ const MineField = () => {
     }
   }, [countOpen, difficulty]);
 
+  const gameOver = useCallback(() => {
+    openAllMine();
+    setIsExploded(true);
+    setIsGameOver(true);
+    setShowGameOver(true);
+  }, [openAllMine]);
+
+  const checkMineNeighbor = useCallback(
+    (row: number, col: number) => {
+      if (
+        !difficulty ||
+        !mineField ||
+        !fieldState ||
+        row < 0 ||
+        col < 0 ||
+        row >= difficulty.height ||
+        col >= difficulty.width
+      )
+        return;
+
+      if (
+        fieldState[row][col] !== FieldState.FLAGGED &&
+        mineField[row][col] === -1
+      ) {
+        gameOver();
+      }
+    },
+    [difficulty, fieldState, gameOver, mineField]
+  );
+
   const onExploreNeighbor = useCallback(
     (row: number, col: number) => {
       if (!fieldState || !mineField) return;
@@ -166,6 +199,15 @@ const MineField = () => {
       const flagCount = countNeighborFlag(row, col);
       if (flagCount === mineField[row][col]) {
         const updatedFieldState = [...fieldState];
+
+        checkMineNeighbor(row - 1, col);
+        checkMineNeighbor(row - 1, col - 1);
+        checkMineNeighbor(row - 1, col + 1);
+        checkMineNeighbor(row, col - 1);
+        checkMineNeighbor(row, col + 1);
+        checkMineNeighbor(row + 1, col);
+        checkMineNeighbor(row + 1, col - 1);
+        checkMineNeighbor(row + 1, col + 1);
 
         exploreNeighbor(row, col, updatedFieldState, mineField, (r, c, f, m) =>
           exploreMine(r, c, f, m)
@@ -178,6 +220,7 @@ const MineField = () => {
     },
     [
       checkGameOver,
+      checkMineNeighbor,
       countNeighborFlag,
       dispatch,
       exploreMine,
@@ -216,10 +259,7 @@ const MineField = () => {
 
       if (updatedMineField[row][col] === -1) {
         // Game over when a mine is opened
-        openAllMine();
-        setIsExploded(true);
-        setIsGameOver(true);
-        setShowGameOver(true);
+        gameOver();
       } else {
         // Explore mine and update the field state
         const updatedFieldState = [...fieldState];
@@ -235,9 +275,9 @@ const MineField = () => {
       difficulty,
       dispatch,
       exploreMine,
+      gameOver,
       isFieldGenerated,
       isGameOver,
-      openAllMine,
       fieldState,
       mineField,
     ]
@@ -259,6 +299,7 @@ const MineField = () => {
 
   const onNewGame = useCallback(() => {
     dispatch({ type: "NEW_GAME" });
+    timerDispatch({ type: "RESET_TIMER" });
     setIsReady(false);
     setIsFieldGenerated(false);
     setIsGenerating(false);
@@ -266,7 +307,7 @@ const MineField = () => {
     setIsGameOver(false);
     setIsExploded(false);
     setIsDifficultySelectOpen(false);
-  }, [dispatch]);
+  }, [dispatch, timerDispatch]);
 
   useEffect(() => {
     if (!difficulty) {
