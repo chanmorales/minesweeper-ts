@@ -2,11 +2,15 @@ import FlagIcon from "../common/icons/FlagIcon";
 import { useMineField } from "../hooks/useMineField";
 import { ClockCircleFilled, ExclamationCircleFilled } from "@ant-design/icons";
 import { Button, Popover, Typography } from "antd";
+import Timer from "./Timer";
+import { useTimer } from "../hooks/useTimer";
 
 const GameDetails = () => {
   const {
     state: { difficulty, flagCount },
   } = useMineField();
+
+  const { timerDispatch } = useTimer();
 
   const { Text } = Typography;
 
@@ -17,10 +21,7 @@ const GameDetails = () => {
         className="flex justify-between relative">
         <div id="timer-container" className="absolute">
           <ClockCircleFilled color="white" className="mr-1" />
-          {
-            // TODO Timer
-            "00:00"
-          }
+          <Timer onPausePlay={() => timerDispatch({ type: "TOGGLE_TIMER" })} />
         </div>
         <div
           id="flag-count-container"
