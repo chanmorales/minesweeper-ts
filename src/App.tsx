@@ -1,16 +1,16 @@
 import Home from "./pages/Home";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { HashRouter, Route, Routes } from "react-router-dom";
 import GamePage from "./pages/GamePage";
 
 const App = () => {
   return (
     <div className="App">
-      <Router>
+      <HashRouter>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/game" element={<GamePage />} />
         </Routes>
-      </Router>
+      </HashRouter>
     </div>
   );
 };
